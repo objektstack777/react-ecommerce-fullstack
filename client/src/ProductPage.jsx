@@ -3,6 +3,7 @@ import { useLocation } from 'wouter';
 
 import api from './api';
 import ProductCard from './ProductCard';
+import { useAuth } from './AuthStore';
 import { useCart } from './CartStore';
 import { useFlashMessage } from './FlashMessageStore';
 
@@ -14,6 +15,8 @@ function ProductPage() {
   const [errorMessage, setErrorMessage] = useState('');
 
   const [, setLocation] = useLocation();
+
+  const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
   const { showMessage } = useFlashMessage();
 
@@ -57,15 +60,42 @@ function ProductPage() {
     fetchProducts();
   };
 
-  const handleAddToCart = (product) => {
-    addToCart(product);
-    showMessage('New item added to cart!', 'success');
-    setLocation('/cart');
+  const handleAddToCart = async (product) => {
+    if (!isAuthenticated) {
+      showMessage(
+        'Please log in before adding products.',
+        'warning'
+      );
+
+      setLocation('/login');
+      return;
+    }
+
+    try {
+      await addToCart(product.id);
+
+      showMessage(
+        'Product added to your cart!',
+        'success'
+      );
+
+      setLocation('/cart');
+    } catch (error) {
+      console.error('Add-to-cart error:', error);
+
+      showMessage(
+        error.response?.data?.message ||
+          'Unable to add the product.',
+        'danger'
+      );
+    }
   };
 
   return (
     <div className="container my-5">
-      <h1 className="text-center mb-4">Our Products</h1>
+      <h1 className="text-center mb-4">
+        Our Products
+      </h1>
 
       <form
         className="row g-3 mb-4"

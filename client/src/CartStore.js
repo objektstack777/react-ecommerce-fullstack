@@ -1,94 +1,127 @@
+import { useCallback } from 'react';
 import { atom, useAtom } from 'jotai';
 
-const initialCart = [
-  {
-    id: 1,
-    product_id: 1,
-    quantity: 10,
-    name: 'Organic Green Tea',
-    price: 12.99,
-    imageUrl: 'https://picsum.photos/id/225/300/200',
-    description:
-      'Premium organic green tea leaves, rich in antioxidants and offering a smooth, refreshing taste.',
-  },
-];
+import api from './api';
+import { useAuth } from './AuthStore';
 
-export const cartAtom = atom(initialCart);
+export const cartAtom = atom({
+  items: [],
+  total: 0,
+  isLoading: false,
+});
 
 export const useCart = () => {
-  const [cart, setCart] = useAtom(cartAtom);
+  const [cartState, setCartState] = useAtom(cartAtom);
+  const { auth } = useAuth();
 
-  const getCartTotal = () => {
-    return cart
-      .reduce(
-        (total, item) =>
-          total + item.price * item.quantity,
-        0
-      )
-      .toFixed(2);
-  };
-
-  const addToCart = (product) => {
-    setCart((currentCart) => {
-      const existingItemIndex = currentCart.findIndex(
-        (item) => item.product_id === product.id
-      );
-
-      if (existingItemIndex !== -1) {
-        return currentCart.map((item, index) =>
-          index === existingItemIndex
-            ? {
-                ...item,
-                quantity: item.quantity + 1,
-              }
-            : item
-        );
-      }
-
-      const newCartItem = {
-        id: Math.floor(Math.random() * 10000 + 1),
-        product_id: product.id,
-        name: product.name,
-        price: product.price,
-        imageUrl: product.imageUrl,
-        description: product.description,
-        quantity: 1,
-      };
-
-      return [...currentCart, newCartItem];
-    });
-  };
-
-  const modifyQuantity = (productId, newQuantity) => {
-    if (newQuantity < 1) {
-      return;
+  const getAuthConfig = useCallback(() => {
+    if (!auth.token) {
+      throw new Error('Authentication required');
     }
 
-    setCart((currentCart) =>
-      currentCart.map((item) =>
-        item.product_id === productId
-          ? {
-              ...item,
-              quantity: newQuantity,
-            }
-          : item
-      )
-    );
-  };
+    return {
+      headers: {
+        Authorization: `Bearer ${auth.token}`,
+      },
+    };
+  }, [auth.token]);
 
-  const removeFromCart = (productId) => {
-    setCart((currentCart) =>
-      currentCart.filter(
-        (item) => item.product_id !== productId
-      )
-    );
-  };
+  const applyCartResponse = useCallback(
+    (data) => {
+      setCartState({
+        items: data.items || [],
+        total: data.total || 0,
+        isLoading: false,
+      });
+    },
+    [setCartState]
+  );
+
+  const fetchCart = useCallback(async () => {
+    setCartState((currentState) => ({
+      ...currentState,
+      isLoading: true,
+    }));
+
+    try {
+      const response = await api.get(
+        '/cart',
+        getAuthConfig()
+      );
+
+      applyCartResponse(response.data);
+
+      return response.data;
+    } catch (error) {
+      setCartState((currentState) => ({
+        ...currentState,
+        isLoading: false,
+      }));
+
+      throw error;
+    }
+  }, [applyCartResponse, getAuthConfig, setCartState]);
+
+  const addToCart = useCallback(
+    async (productId) => {
+      const response = await api.post(
+        '/cart',
+        { productId },
+        getAuthConfig()
+      );
+
+      applyCartResponse(response.data);
+
+      return response.data;
+    },
+    [applyCartResponse, getAuthConfig]
+  );
+
+  const modifyQuantity = useCallback(
+    async (productId, quantity) => {
+      const response = await api.patch(
+        `/cart/${productId}`,
+        { quantity },
+        getAuthConfig()
+      );
+
+      applyCartResponse(response.data);
+
+      return response.data;
+    },
+    [applyCartResponse, getAuthConfig]
+  );
+
+  const removeFromCart = useCallback(
+    async (productId) => {
+      const response = await api.delete(
+        `/cart/${productId}`,
+        getAuthConfig()
+      );
+
+      applyCartResponse(response.data);
+
+      return response.data;
+    },
+    [applyCartResponse, getAuthConfig]
+  );
+
+  const clearCart = useCallback(() => {
+    setCartState({
+      items: [],
+      total: 0,
+      isLoading: false,
+    });
+  }, [setCartState]);
 
   return {
-    cart,
-    getCartTotal,
+    cart: cartState.items,
+    total: cartState.total,
+    isLoading: cartState.isLoading,
+    fetchCart,
     addToCart,
     modifyQuantity,
     removeFromCart,
+    clearCart,
   };
 };

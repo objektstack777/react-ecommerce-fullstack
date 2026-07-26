@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { useLocation } from 'wouter';
 
+import api from './api';
 import ProductCard from './ProductCard';
 import { useCart } from './CartStore';
 import { useFlashMessage } from './FlashMessageStore';
 
 function ProductPage() {
   const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const [, setLocation] = useLocation();
   const { addToCart } = useCart();
@@ -16,13 +18,20 @@ function ProductPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get('/products.json');
+        setIsLoading(true);
+        setErrorMessage('');
+
+        const response = await api.get('/products');
+
         setProducts(response.data);
       } catch (error) {
-        console.error(
-          'Error fetching products:',
-          error
+        console.error('Error fetching products:', error);
+
+        setErrorMessage(
+          'Unable to load products from the server.'
         );
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -31,20 +40,31 @@ function ProductPage() {
 
   const handleAddToCart = (product) => {
     addToCart(product);
-
-    showMessage(
-      'New item added to cart!',
-      'success'
-    );
-
+    showMessage('New item added to cart!', 'success');
     setLocation('/cart');
   };
 
+  if (isLoading) {
+    return (
+      <div className="container my-5">
+        <p>Loading products...</p>
+      </div>
+    );
+  }
+
+  if (errorMessage) {
+    return (
+      <div className="container my-5">
+        <div className="alert alert-danger">
+          {errorMessage}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container my-5">
-      <h1 className="text-center mb-4">
-        Our Products
-      </h1>
+      <h1 className="text-center mb-4">Our Products</h1>
 
       <div className="row">
         {products.map((product) => (

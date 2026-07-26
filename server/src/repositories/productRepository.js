@@ -41,3 +41,23 @@ export const findAllProducts = async ({
     .sort({ id: 1 })
     .lean();
 };
+
+export const findProductById = async (productId) => {
+  return Product.findOne({
+    id: Number(productId),
+  })
+    .select('-_id -__v -createdAt -updatedAt')
+    .lean();
+};
+
+export const findProductsByIds = async (
+  productIds
+) => {
+  return Product.find({
+    id: {
+      $in: productIds,
+    },
+  })
+    .select('-_id -__v -createdAt -updatedAt')
+    .lean();
+};

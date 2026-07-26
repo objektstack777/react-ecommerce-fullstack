@@ -7,6 +7,7 @@ import HomePage from './HomePage';
 import ProductPage from './ProductPage';
 import RegisterPage from './RegisterPage';
 import LoginPage from './LoginPage';
+import OrderHistoryPage from './OrderHistoryPage';
 
 function App() {
   return (
@@ -22,6 +23,9 @@ function App() {
           <LoginPage />
         </Route>
         <Route path="/cart" component={ShoppingCart} />
+        <Route path="/orders">
+          <OrderHistoryPage />
+        </Route>
       </Switch>
 
       <footer className="bg-dark text-white text-center py-3">

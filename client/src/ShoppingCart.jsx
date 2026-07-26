@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 
+import api from './api';
 import { useAuth } from './AuthStore';
 import { useCart } from './CartStore';
 import { useFlashMessage } from './FlashMessageStore';
@@ -9,7 +10,15 @@ function ShoppingCart() {
   const [errorMessage, setErrorMessage] =
     useState('');
 
-  const { isAuthenticated } = useAuth();
+  const [isCheckingOut, setIsCheckingOut] =
+    useState(false);
+
+  const [, setLocation] = useLocation();
+
+  const {
+    auth,
+    isAuthenticated,
+  } = useAuth();
 
   const {
     cart,
@@ -18,6 +27,7 @@ function ShoppingCart() {
     fetchCart,
     modifyQuantity,
     removeFromCart,
+    clearCart,
   } = useCart();
 
   const { showMessage } = useFlashMessage();
@@ -80,14 +90,46 @@ function ShoppingCart() {
     }
   };
 
+  const handleCheckout = async () => {
+    try {
+      setIsCheckingOut(true);
+
+      await api.post(
+        '/orders',
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${auth.token}`,
+          },
+        }
+      );
+
+      clearCart();
+
+      showMessage(
+        'Order created successfully!',
+        'success'
+      );
+
+      setLocation('/orders');
+    } catch (error) {
+      console.error('Checkout error:', error);
+
+      showMessage(
+        error.response?.data?.message ||
+          'Unable to complete checkout.',
+        'danger'
+      );
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="container my-5">
         <div className="alert alert-warning">
-          Please{' '}
-          <Link href="/login">
-            log in
-          </Link>{' '}
+          Please <Link href="/login">log in</Link>{' '}
           to view your saved cart.
         </div>
       </div>
@@ -189,10 +231,21 @@ function ShoppingCart() {
               ))}
             </ul>
 
-            <div className="mt-3 mb-3 text-end">
+            <div className="mt-3 mb-4 text-end">
               <h4>
                 Total: ${Number(total).toFixed(2)}
               </h4>
+
+              <button
+                type="button"
+                className="btn btn-success mt-2"
+                disabled={isCheckingOut}
+                onClick={handleCheckout}
+              >
+                {isCheckingOut
+                  ? 'Processing order...'
+                  : 'Checkout'}
+              </button>
             </div>
           </>
         )

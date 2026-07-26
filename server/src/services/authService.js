@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import {
   createUser,
   findUserByEmail,
+  findUserById,
 } from '../repositories/userRepository.js';
 
 export const registerUser = async ({
@@ -128,4 +129,16 @@ export const loginUser = async ({
       role: user.role,
     },
   };
+};
+
+export const getUserProfile = async (userId) => {
+  const user = await findUserById(userId);
+
+  if (!user) {
+    const error = new Error('User not found');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return user;
 };

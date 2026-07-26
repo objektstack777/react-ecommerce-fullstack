@@ -1,4 +1,5 @@
 import {
+  getUserProfile,
   loginUser,
   registerUser,
 } from '../services/authService.js';
@@ -37,6 +38,29 @@ export const login = async (req, res) => {
       message: error.statusCode
         ? error.message
         : 'Unable to log in',
+    });
+  }
+};
+
+export const getProfile = async (req, res) => {
+  try {
+    const user = await getUserProfile(
+      req.user.userId
+    );
+
+    res.status(200).json({
+      user,
+    });
+  } catch (error) {
+    console.error(
+      'Profile retrieval error:',
+      error.message
+    );
+
+    res.status(error.statusCode || 500).json({
+      message: error.statusCode
+        ? error.message
+        : 'Unable to retrieve profile',
     });
   }
 };

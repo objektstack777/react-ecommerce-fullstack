@@ -1,10 +1,15 @@
 import {
-  getAllProducts,
+  getProducts,
 } from '../services/productService.js';
 
 export const listProducts = (req, res) => {
   try {
-    const products = getAllProducts();
+    const { search = '', category = '' } = req.query;
+
+    const products = getProducts({
+      search,
+      category,
+    });
 
     res.status(200).json(products);
   } catch (error) {

@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 import {
   createUser,
@@ -59,5 +60,72 @@ export const registerUser = async ({
     name: user.name,
     email: user.email,
     role: user.role,
+  };
+};
+
+export const loginUser = async ({
+  email,
+  password,
+}) => {
+  if (!email || !password) {
+    const error = new Error(
+      'Email and password are required'
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const normalisedEmail = email.trim().toLowerCase();
+
+  const user = await findUserByEmail(
+    normalisedEmail
+  );
+
+  if (!user) {
+    const error = new Error(
+      'Invalid email or password'
+    );
+    error.statusCode = 401;
+    throw error;
+  }
+
+  const passwordMatches = await bcrypt.compare(
+    password,
+    user.passwordHash
+  );
+
+  if (!passwordMatches) {
+    const error = new Error(
+      'Invalid email or password'
+    );
+    error.statusCode = 401;
+    throw error;
+  }
+
+  if (!process.env.JWT_SECRET) {
+    throw new Error(
+      'JWT_SECRET is missing from the server environment'
+    );
+  }
+
+  const token = jwt.sign(
+    {
+      userId: user._id.toString(),
+      role: user.role,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: '1h',
+    }
+  );
+
+  return {
+    token,
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    },
   };
 };

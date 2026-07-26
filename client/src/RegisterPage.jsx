@@ -9,6 +9,7 @@ import {
     Formik,
 } from 'formik';
 import * as Yup from 'yup';
+import api from './api';
 
 const initialValues = {
     name: '',
@@ -75,25 +76,37 @@ function RegisterPage() {
     }, []);
 
     const handleSubmit = async (values, formikHelpers) => {
-        try {
-            console.log('Form values:', values);
+    try {
+        const {
+        confirmPassword,
+        ...registrationData
+        } = values;
 
-            showMessage(
-                'Registration successful!',
-                'success'
-            );
-        } catch (error) {
-            console.error('Registration error:', error);
+        const response = await api.post(
+        '/auth/register',
+        registrationData
+        );
 
-            showMessage(
-                'Registration failed. Please try again.',
-                'danger'
-            );
-        } finally {
-            formikHelpers.setSubmitting(false);
-            setLocation('/');
-        }
-    };
+        showMessage(
+        response.data.message ||
+            'Registration successful!',
+        'success'
+        );
+
+        formikHelpers.resetForm();
+        setLocation('/');
+    } catch (error) {
+        console.error('Registration error:', error);
+
+        showMessage(
+        error.response?.data?.message ||
+            'Registration failed. Please try again.',
+        'danger'
+        );
+    } finally {
+        formikHelpers.setSubmitting(false);
+    }
+};
 
     return (
         <div className="container mt-5">

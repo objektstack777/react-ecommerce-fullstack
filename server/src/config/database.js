@@ -1,0 +1,13 @@
+import mongoose from 'mongoose';
+
+export const connectDatabase = async () => {
+  if (!process.env.MONGODB_URI) {
+    throw new Error(
+      'MONGODB_URI is missing from the server environment'
+    );
+  }
+
+  await mongoose.connect(process.env.MONGODB_URI);
+
+  console.log('MongoDB connected successfully');
+};

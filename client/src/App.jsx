@@ -8,6 +8,7 @@ import ProductPage from './ProductPage';
 import RegisterPage from './RegisterPage';
 import LoginPage from './LoginPage';
 import OrderHistoryPage from './OrderHistoryPage';
+import AdminProductsPage from './AdminProductsPage';
 
 function App() {
   return (
@@ -18,6 +19,9 @@ function App() {
       <Switch>
         <Route path="/" component={HomePage} />
         <Route path="/products" component={ProductPage} />
+        <Route path="/admin/products">
+          <AdminProductsPage />
+        </Route>
         <Route path="/register" component={RegisterPage} />
         <Route path="/login">
           <LoginPage />

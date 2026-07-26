@@ -120,35 +120,49 @@ function Navbar() {
                 </li>
               </>
             )}
-                      {isAuthenticated && (
-            <>
-              <li className="nav-item">
-                <Link
-                  href="/orders"
-                  className={getNavLinkClass('/orders')}
-                  onClick={closeNavbar}
-                >
-                  Orders
-                </Link>
-              </li>
-
-              <li className="nav-item">
-                <span className="navbar-text me-lg-3">
-                  Hello, {auth.user?.name}
-                </span>
-              </li>
-
-              <li className="nav-item">
-                <button
-                  type="button"
-                  className="btn btn-outline-light btn-sm"
-                  onClick={handleLogout}
-                >
-                  Logout
-                </button>
-              </li>
-            </>
+              {isAuthenticated && (
+  <>
+    {auth.user?.role === 'admin' && (
+      <li className="nav-item">
+        <Link
+          href="/admin/products"
+          className={getNavLinkClass(
+            '/admin/products'
           )}
+          onClick={closeNavbar}
+        >
+          Admin
+        </Link>
+      </li>
+    )}
+
+    <li className="nav-item">
+      <Link
+        href="/orders"
+        className={getNavLinkClass('/orders')}
+        onClick={closeNavbar}
+      >
+        Orders
+      </Link>
+    </li>
+
+    <li className="nav-item">
+      <span className="navbar-text me-lg-3">
+        Hello, {auth.user?.name}
+      </span>
+    </li>
+
+    <li className="nav-item">
+      <button
+        type="button"
+        className="btn btn-outline-light btn-sm"
+        onClick={handleLogout}
+      >
+        Logout
+      </button>
+    </li>
+  </>
+)}        
             
           </ul>
         </div>

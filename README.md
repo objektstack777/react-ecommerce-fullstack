@@ -133,11 +133,10 @@ Before running the application, install:
 Clone the repository:
 
 ```bash
-git clone YOUR_GITHUB_REPOSITORY_URL
+git clone https://github.com/objektstack777/react-ecommerce-fullstack.git
 cd react-ecommerce-fullstack
 ```
 
-Replace `YOUR_GITHUB_REPOSITORY_URL` with the URL of the GitHub repository.
 
 Install the frontend dependencies:
 

@@ -1,42 +1,77 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 
+import { useAuth } from './AuthStore';
+import { useFlashMessage } from './FlashMessageStore';
+
 function Navbar() {
-  const [isNavbarShowing, setNavbarShowing] = useState(false);
-  const [location] = useLocation();
+  const [isNavbarShowing, setIsNavbarShowing] =
+    useState(false);
+
+  const [location, setLocation] = useLocation();
+
+  const {
+    auth,
+    logout,
+    isAuthenticated,
+  } = useAuth();
+
+  const { showMessage } = useFlashMessage();
 
   const toggleNavbar = () => {
-    setNavbarShowing(!isNavbarShowing);
+    setIsNavbarShowing((currentValue) => !currentValue);
+  };
+
+  const closeNavbar = () => {
+    setIsNavbarShowing(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    closeNavbar();
+
+    showMessage('Logged out successfully', 'success');
+    setLocation('/');
+  };
+
+  const getNavLinkClass = (path) => {
+    return location === path
+      ? 'nav-link active'
+      : 'nav-link';
   };
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
       <div className="container">
-        <Link href="/" className="navbar-brand">
-          E-Shop
+        <Link
+          href="/"
+          className="navbar-brand"
+          onClick={closeNavbar}
+        >
+          E-Commerce Shop
         </Link>
 
         <button
-          className="navbar-toggler"
           type="button"
+          className="navbar-toggler"
           onClick={toggleNavbar}
+          aria-label="Toggle navigation"
+          aria-expanded={isNavbarShowing}
         >
-          <span className="navbar-toggler-icon"></span>
+          <span className="navbar-toggler-icon" />
         </button>
 
         <div
           className={`collapse navbar-collapse ${
             isNavbarShowing ? 'show' : ''
           }`}
-          id="navbarNav"
         >
-          <ul className="navbar-nav ms-auto">
+          <ul className="navbar-nav ms-auto align-items-lg-center">
             <li className="nav-item">
               <Link
                 href="/"
-                className={`nav-link ${
-                  location === '/' ? 'active' : ''
-                }`}
+                className={getNavLinkClass('/')}
+                onClick={closeNavbar}
               >
                 Home
               </Link>
@@ -45,9 +80,8 @@ function Navbar() {
             <li className="nav-item">
               <Link
                 href="/products"
-                className={`nav-link ${
-                  location === '/products' ? 'active' : ''
-                }`}
+                className={getNavLinkClass('/products')}
+                onClick={closeNavbar}
               >
                 Products
               </Link>
@@ -55,26 +89,58 @@ function Navbar() {
 
             <li className="nav-item">
               <Link
-                href="/register"
-                className={`nav-link ${
-                  location === '/register' ? 'active' : ''
-                }`}
+                href="/cart"
+                className={getNavLinkClass('/cart')}
+                onClick={closeNavbar}
               >
-                Register
+                Cart
               </Link>
             </li>
 
-            <li className="nav-item">
-                <Link
-                    href="/cart"
-                    className={`nav-link ${
-                        location === '/cart' ? 'active' : ''
-                    }`}
-            >
-            Cart
-        </Link>
-    </li>
-</ul>
+            {!isAuthenticated && (
+              <>
+                <li className="nav-item">
+                  <Link
+                    href="/register"
+                    className={getNavLinkClass('/register')}
+                    onClick={closeNavbar}
+                  >
+                    Register
+                  </Link>
+                </li>
+
+                <li className="nav-item">
+                  <Link
+                    href="/login"
+                    className={getNavLinkClass('/login')}
+                    onClick={closeNavbar}
+                  >
+                    Login
+                  </Link>
+                </li>
+              </>
+            )}
+
+            {isAuthenticated && (
+              <>
+                <li className="nav-item">
+                  <span className="navbar-text me-lg-3">
+                    Hello, {auth.user?.name}
+                  </span>
+                </li>
+
+                <li className="nav-item">
+                  <button
+                    type="button"
+                    className="btn btn-outline-light btn-sm"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </button>
+                </li>
+              </>
+            )}
+          </ul>
         </div>
       </div>
     </nav>

@@ -2,11 +2,11 @@ import {
   getProducts,
 } from '../services/productService.js';
 
-export const listProducts = (req, res) => {
+export const listProducts = async (req, res) => {
   try {
     const { search = '', category = '' } = req.query;
 
-    const products = getProducts({
+    const products = await getProducts({
       search,
       category,
     });

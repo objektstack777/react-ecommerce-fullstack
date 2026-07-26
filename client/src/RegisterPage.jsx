@@ -1,6 +1,6 @@
+import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { useFlashMessage } from './FlashMessageStore';
-import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import {
     ErrorMessage,
@@ -77,10 +77,11 @@ function RegisterPage() {
 
     const handleSubmit = async (values, formikHelpers) => {
     try {
-        const {
-        confirmPassword,
-        ...registrationData
-        } = values;
+        const registrationData = {
+        ...values,
+    };
+
+    delete registrationData.confirmPassword;
 
         const response = await api.post(
         '/auth/register',

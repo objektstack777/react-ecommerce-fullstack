@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ErrorMessage,
   Field,
@@ -92,12 +92,43 @@ function AdminProductsPage() {
   };
 
   useEffect(() => {
-    if (isAdmin) {
-      fetchProducts();
-    } else {
-      setIsLoading(false);
-    }
-  }, [isAdmin]);
+  if (!isAdmin) {
+    return undefined;
+  }
+
+  let ignore = false;
+
+  api
+    .get('/products')
+    .then((response) => {
+      if (!ignore) {
+        setProducts(response.data);
+        setErrorMessage('');
+      }
+    })
+    .catch((error) => {
+      if (!ignore) {
+        console.error(
+          'Admin product loading error:',
+          error
+        );
+
+        setErrorMessage(
+          error.response?.data?.message ||
+            'Unable to load products.'
+        );
+      }
+    })
+    .finally(() => {
+      if (!ignore) {
+        setIsLoading(false);
+      }
+    });
+
+  return () => {
+    ignore = true;
+  };
+}, [isAdmin]);
 
   const handleSubmit = async (
     values,

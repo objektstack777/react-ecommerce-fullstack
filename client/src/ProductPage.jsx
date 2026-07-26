@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 
 import api from './api';
@@ -42,8 +42,37 @@ function ProductPage() {
   };
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+  let ignore = false;
+
+  api
+    .get('/products')
+    .then((response) => {
+      if (!ignore) {
+        setProducts(response.data);
+      }
+    })
+    .catch((error) => {
+      if (!ignore) {
+        console.error(
+          'Error fetching products:',
+          error
+        );
+
+        setErrorMessage(
+          'Unable to load products from the server.'
+        );
+      }
+    })
+    .finally(() => {
+      if (!ignore) {
+        setIsLoading(false);
+      }
+    });
+
+  return () => {
+    ignore = true;
+  };
+}, []);
 
   const handleFilterSubmit = (event) => {
     event.preventDefault();

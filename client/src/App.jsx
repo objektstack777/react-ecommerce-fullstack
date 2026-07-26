@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Route, Switch } from 'wouter';
 import ShoppingCart from './ShoppingCart';
 import FlashMessage from './FlashMessage';
